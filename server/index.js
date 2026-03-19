@@ -30,7 +30,7 @@ app.use(express.json());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://castrex-website-client.vercel.app", 
+  "https://castrex-project-c.vercel.app", 
 ];
 
 app.use(
