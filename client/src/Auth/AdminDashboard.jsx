@@ -1,0 +1,180 @@
+
+import { useState } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import {
+  FaBars,
+  FaSignOutAlt,
+  FaUser,
+  FaTachometerAlt,
+  FaList,
+} from "react-icons/fa";
+
+import {
+  useAdminLogoutMutation,
+  useAdminProfileQuery,
+} from "../redux/apis/adminApi";
+import { toast } from "react-toastify";
+
+export default function AdminDashboardLayout() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [logoutApi] = useAdminLogoutMutation();
+  const { data } = useAdminProfileQuery();
+  const admin = data?.admin;
+
+  /* MENU */
+  const menu = [
+    { name: "Dashboard", path: "/admin", icon: <FaTachometerAlt /> },
+    { name: "Profile", path: "/admin/profile", icon: <FaUser /> },
+    { name: "TopNavbar", path: "/admin/topNavbar", icon: <FaList /> },
+    { name: "mainNavbar", path: "/admin/mainNavbar", icon: <FaList /> },
+    { name: "Hero", path: "/admin/adminhero", icon: <FaList /> },
+    { name: "About", path: "/admin/adminabout", icon: <FaList /> },
+    { name: "Careers", path: "/admin/admincareers", icon: <FaList /> },
+
+    // { name: "capabilities", path: "/admin/casting-capabilities", icon: <FaList /> },
+    // { name: "value-services", path: "/admin/value-services", icon: <FaList /> },
+    // { name: "engineering-support", path: "/admin/engineering-support", icon: <FaList /> },
+    
+    { name: "casting-methods", path: "/admin/casting-methods", icon: <FaList /> },
+    { name: "RFQ", path: "/admin/adminrfq", icon: <FaList /> },
+    { name: "contact", path: "/admin/admincontact", icon: <FaList /> },
+    // { name: "Footer", path: "/admin/adminfooter", icon: <FaList /> },
+  ];
+
+  /* LOGOUT */
+  const handleLogout = async () => {
+    try {
+      await logoutApi().unwrap();
+      toast.success("Logout successful");
+      navigate("/adminlogin");
+    } catch {
+      toast.error("Logout failed");
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+
+      {/* MOBILE TOPBAR */}
+      <div className="lg:hidden fixed top-0 left-0 w-full h-14 bg-[#18181B] text-white flex items-center justify-between px-4 z-50 shadow">
+        <h2 className="text-lg font-semibold tracking-wide">Admin Panel</h2>
+        <FaBars
+          className="text-xl cursor-pointer active:scale-90 transition"
+          onClick={() => setSidebarOpen(true)}
+        />
+      </div>
+
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          fixed lg:static top-0 left-0 h-full w-64 bg-[#18181B] text-white
+          flex flex-col px-4 py-6 z-50
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        `}
+      >
+
+        {/* CLOSE BTN MOBILE */}
+        <div className="lg:hidden flex justify-end mb-4">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-xs bg-red-600 px-3 py-1 rounded"
+          >
+            Close
+          </button>
+        </div>
+
+        {/* ADMIN INFO */}
+        <div className="text-center mb-6 border-b border-gray-600 pb-6">
+          <img
+            src={
+              admin?.profile?.url ||
+              "https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff"
+            }
+            className="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-red-500 object-cover"
+            alt="Admin"
+          />
+
+          <h3 className="font-semibold">{admin?.name || "Admin"}</h3>
+
+          <p className="text-xs text-gray-300 truncate">
+            {admin?.email || "admin@email.com"}
+          </p>
+        </div>
+
+        {/* MENU */}
+        <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
+
+          {menu.map((item) => {
+            const active = location.pathname === item.path;
+
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setSidebarOpen(false);
+                }}
+                className={`
+                  flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm
+                  transition-all duration-200 group
+                  ${
+                    active
+                      ? "bg-[#B91C1C] shadow text-white"
+                      : "text-gray-200 hover:bg-[#52525B] hover:text-white"
+                  }
+                `}
+              >
+                <span className="text-base opacity-90 group-hover:scale-110 transition">
+                  {item.icon}
+                </span>
+
+                <span className="flex-1 text-left font-medium">
+                  {item.name}
+                </span>
+
+                {active && (
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                )}
+
+              </button>
+            );
+          })}
+
+        </nav>
+
+        {/* LOGOUT */}
+        <button
+          onClick={handleLogout}
+          className="mt-6 flex items-center justify-center gap-2 p-3 bg-[#B91C1C] rounded-lg hover:bg-red-700 transition font-medium"
+        >
+          <FaSignOutAlt />
+          Logout
+        </button>
+
+      </aside>
+
+      {/* OVERLAY */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* MAIN */}
+      <main className="flex-1 overflow-y-auto p-6 mt-14 lg:mt-0">
+        <Outlet />
+      </main>
+
+    </div>
+  );
+}
+
+
+
+
+
